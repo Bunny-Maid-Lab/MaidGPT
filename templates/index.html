@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let socket = io();
+
+    socket.on('transcription', function(data) {
+        document.getElementById('input-text').value = data.transcription;
+        sendMessage();
+    });
+});
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server 관리</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .container {
+            background-color: #1e1e1e;
+            border-radius: 0.25rem;
+            padding: 20px;
+        }
+        .nav-tabs .nav-link {
+            color: #ffffff;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: #333333;
+            border-color: #444444;
+        }
+        .form-control {
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #444444;
+        }
+        .form-control[readonly] {
+            background-color: #2e2e2e; /* 어두운 배경색 */
+        }
+        .btn {
+            background-color: #444444;
+            border: 1px solid #555555;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .monaco-editor-container {
+            height: 200px;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        .monaco-editor-container-parameter {
+            height: 200px;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            margin-top: 0.5rem;
+        }
+        .function-block.collapsed .function-details {
+            display: none;
+        }
+        .function-block .function-header {
+            cursor: pointer;
+        }
+        .led-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .led-green {
+            background-color: #00ff00;
+        }
+        .led-red {
+            background-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="main-tab" data-toggle="tab" href="#main" role="tab" aria-controls="main" aria-selected="true">Main</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="chat-tab" data-toggle="tab" href="#chat" role="tab" aria-controls="chat" aria-selected="false">Chat History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="prompt-tab" data-toggle="tab" href="#prompt" role="tab" aria-controls="prompt" aria-selected="false">Edit Prompt</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="functions-tab" data-toggle="tab" href="#functions" role="tab" aria-controls="functions" aria-selected="false">Edit Functions</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="emotion-tab" data-toggle="tab" href="#emotion" role="tab" aria-controls="emotion" aria-selected="false">Emotion Embedding</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="Document-tab" data-toggle="tab" href="#Document" role="tab" aria-controls="Document" aria-selected="false">Document</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
+                <img src="{{ url_for('static', filename='Hana.png') }}" alt="Rina" class="img-fluid mt-3">
+                <div id="health-status" class="mt-3">
+                    <span id="health-indicator" class="led-indicator"></span>
+                    <span id="health-text">Checking server status...</span>
+                </div>
+                <div class="mt-3 p-3 border rounded">
+                    <div class="form-group">
+                        <label for="input-text">Input:</label>
+                        <button id="mic-button" class="btn btn-secondary ml-2" onclick="toggleMic()">Mic</button>
+                        <span id="mic-indicator" class="led-indicator led-red"></span>
+                        <button id="tts-button" class="btn btn-secondary ml-2" onclick="toggleTTS()">TTS</button>
+                        <span id="tts-indicator" class="led-indicator led-red"></span>
+                        <input type="text" id="input-text" class="form-control" placeholder="Enter your message">
+                    </div>
+                    <div class="form-group">
+                        <label for="output-text">Output:</label>
+                        <textarea id="output-text" class="form-control" rows="3" readonly></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab">
+                <div id="chat-history-container" class="mt-3"></div>
+            </div>
+            <div class="tab-pane fade" id="prompt" role="tabpanel" aria-labelledby="prompt-tab">
+                <div class="form-group"><br>
+                    <label for="system-prompt">System Prompt:</label>
+                    <textarea id="system-prompt" class="form-control mt-3" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="character-prompt">Character Prompt:</label>
+                    <textarea id="character-prompt" class="form-control mt-3" rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="command-prompt">Performing a Command:</label>
+                    <textarea id="command-prompt" class="form-control mt-3" rows="5"></textarea>
+                </div>
+                <button class="btn btn-primary mt-3" onclick="savePrompt()">Save</button>
+            </div>
+            <div class="tab-pane fade" id="functions" role="tabpanel" aria-labelledby="functions-tab">
+                <div id="functions-container" class="mt-3"></div>
+                <button class="btn btn-secondary mt-3" onclick="addFunction()">Add Function</button>
+                <button class="btn btn-primary mt-3" onclick="saveFunctions()">Save All</button>
+            </div>
+            <div class="tab-pane fade" id="emotion" role="tabpanel" aria-labelledby="emotion-tab">
+                <div class="form-group"><br>
+                    <label for="emotion-prompt">Prompt:</label>
+                    <textarea id="emotion-prompt" class="form-control mt-3" rows="5">emotion_prompt</textarea>
+                </div>
+                <table class="table table-dark table-bordered mt-3" id="emotion-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Emotion</th>
+                            <th style="width: 70%;">Example</th>
+                            <th style="width: 15%;">Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Emotion rows will be added here dynamically -->
+                    </tbody>
+                </table>
+                <button class="btn btn-secondary mt-3" onclick="addEmotion()">Add Emotion</button>
+                <button class="btn btn-primary mt-3" onclick="saveEmotionPrompt()">Save</button>
+            </div>
+            <div class="tab-pane fade" id="Document" role="tabpanel" aria-labelledby="Document-tab">
+                <div id="Document" class="mt-3"></div>
+            </div>
+        </div>
+        <button class="btn btn-danger mt-3" onclick="restartServer()">Restart Server</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.33.0/min/vs/loader.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
