@@ -41,9 +41,9 @@ The MaidGPT web management page allows you to execute various functions.
 
 The management page is divided into a web page and a server that organizes results after MaidGPT actually communicates with GPT and executes functions.
 
-\`\`\`bash
+```bash
 python app.py
-\`\`\`
+```
 
 With the above command, you can start the MaidGPT web server, MaidGPT server, and STT and TTS servers all at once.
 
@@ -86,7 +86,7 @@ The repository includes example functions using Samsung SmartThings and LG Thinq
 ### Function Writing Rules and Principles
 - When using external modules, write the import statement inside the function like this:
 
-\`\`\`python
+```python
 def set_acTemp(temp):
     from LGPlugin import client as LGClient
     thinqClient = LGClient.client_set()
@@ -96,18 +96,18 @@ def set_acTemp(temp):
         return True
     else:
         return False
-\`\`\`
+```
 
 - Each function must have a return statement. For success/failure, use \`return True\` / \`return False\`. For returning specific values, set the return value like this:
 
-\`\`\`python
+```python
 def timeKST():
     from datetime import datetime, timedelta, timezone
     utc_now = datetime.utcnow()
     kst_timezone = timezone(timedelta(hours=9))
     kst_now = utc_now.replace(tzinfo=timezone.utc).astimezone(kst_timezone)
     return kst_now.strftime('%Y-%m-%d %H:%M:%S %Z%z')
-\`\`\`
+```
 
 - Functions are executed internally using \`exec\`. When input is given, the Function Calling receives parameters and finds the function, then the result is stored in a variable using \`result = function_name\`. The result is combined with the character's dialogue and sent back to GPT, which then returns a response.
 
