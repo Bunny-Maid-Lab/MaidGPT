@@ -129,5 +129,3 @@ API keys for OpenAI and other necessary keys should be set in \`server_config.js
 For TTS model creation, refer to the MeloTTS repository.
 
 ---
-
-This markdown document has been translated into English accurately and styled with emojis and formatting for easy reading.
