@@ -41,9 +41,9 @@ MaidGPT 웹 관리 페이지에서는 여러 기능을 실행할 수 있습니�
 
 관리 페이지는 웹 페이지와 MaidGPT가 실제로 GPT와 통신한 뒤 결과를 정리하고 함수를 실행하는 서버로 나뉘어 구성되어 있습니다.
 
-\`\`\`bash
+```bash
 python app.py
-\`\`\`
+```
 
 위 명령어로 MaidGPT 웹 서버, MaidGPT 서버, STT 및 TTS 서버를 모두 한 번에 실행할 수 있습니다.
 
@@ -86,7 +86,7 @@ python app.py
 ### 함수 작성 규칙과 원리
 - 외부 모듈을 사용해야 할 경우, 다음과 같이 함수 안에 import를 작성합니다:
 
-\`\`\`python
+```python
 def set_acTemp(temp):
     from LGPlugin import client as LGClient
     thinqClient = LGClient.client_set()
@@ -96,18 +96,18 @@ def set_acTemp(temp):
         return True
     else:
         return False
-\`\`\`
+```
 
 - 각 함수는 반드시 return 문이 있어야 합니다. 성공/실패 여부가 있을 경우 \`return True\` / \`return False\`를 작성하고, 특정 값을 반환해야 할 경우 다음과 같이 결과 값을 반환하도록 설정합니다:
 
-\`\`\`python
+```python
 def timeKST():
     from datetime import datetime, timedelta, timezone
     utc_now = datetime.utcnow()
     kst_timezone = timezone(timedelta(hours=9))
     kst_now = utc_now.replace(tzinfo=timezone.utc).astimezone(kst_timezone)
     return kst_now.strftime('%Y-%m-%d %H:%M:%S %Z%z')
-\`\`\`
+```
 
 - 함수는 내부적으로 \`exec\`를 사용하여 실행됩니다. 입력이 주어지면 함수 호출을 통해 받은 매개변수로 함수를 찾아 코드에 맞는 함수를 작성한 뒤, \`result = 함수_이름\` 식을 이용해 함수를 호출하고 결과를 \`result\`에 저장합니다. 결과는 다시 캐릭터의 대사와 합쳐져 GPT로 전송되어 응답을 받아 출력합니다.
 
